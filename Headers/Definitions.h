@@ -2,7 +2,7 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-//Defining a 64 bit integer.
+//Defining a 64 bit integer. (TODO: This needs to be changed as on 32-bit systems, the performance takes a huge hit declaring 64 bit integers)
 typedef unsigned long long uint64;
 
 //Defining the engine name.
@@ -18,7 +18,10 @@ This acts as clamping the array to not go out of bounds during checks.
 */
 #define BOARD_SQUARE_NUMBER 120
 
-//Defining square contents.
+//The maximum number of moves we can expect from a game of chess. (No chess game has gone over 2048 half moves)
+#define MAX_NUMBER_OF_MOVES 2048
+
+//Defining square contents. https://www.chess.com/terms/chess-pieces
 enum Pieces
 {
     EMPTY,
@@ -26,14 +29,14 @@ enum Pieces
     BLACK_PAWN, BLACK_KNIGHT, BLACK_BISHOP, BLACK_ROOK, BLACK_QUEEN, BLACK_KING
 };
 
-//Defining file names. (A file is the technical term for a column on the chess board)
+//Defining file names. (A file is the technical term for a column on the chess board) https://www.chess.com/terms/chessboard#files
 enum Files
 {
     FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H,
     FILE_NONE
 };
 
-//Defining rank names. (A rank is the technical term for a row on the chess board)
+//Defining rank names. (A rank is the technical term for a row on the chess board) https://www.chess.com/terms/chessboard#ranks
 enum Ranks
 {
     RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8,
@@ -48,7 +51,7 @@ enum Players
 };
 
 //Defining the board squares.
-// **Keep in mind here that A1 won't start on index 0, because then we need negatives to calculate border squares.**
+// **Keep in mind here that A1 won't start on index 0, because then we need negatives to calculate border squares.** https://www.chess.com/terms/chessboard#algebraic
 enum Squares
 {
     A1 = 21, B1, C1, D1, E1, F1, G1, H1,
@@ -66,6 +69,33 @@ enum Squares
 enum BoolConst
 {
     FALSE, TRUE
+};
+
+//defining the rules for castling. https://en.wikipedia.org/wiki/Castling
+//This is representing by 4 bits. 0 0 0 0; eg. 1 0 0 1 (in this position of the board, white can castle queen-side and black can castle king-side)
+enum CastlingPermissions
+{
+    WHITE_KING_CASTLING = 1, WHITE_QUEEN_CASTLING = 2,
+    BLACK_KING_CASTLING = 4, BLACK_QUEEN_CASTLING = 8
+};
+
+//Contains what information we need to undo a move.
+typedef struct Undo
+{
+    //We need the move we wish to undo.
+    int move;
+
+    //If castling was allowed on this turn.
+    int castlePermission;
+
+    //If an en passant was possible.
+    int enPassant;
+
+    //We also need to know how far in to the 50 move rule we are.
+    int fiftyMoveRule;
+
+    //We also need to position of the board.
+    uint64 positionKey;
 };
 
 //Defining the board structure.
@@ -86,9 +116,10 @@ typedef struct BoardStructure
     int side;
 
     //The "En Passant" square. If there is one active, if not it will be set to NO_SQUARE.
+    //En Passant is where a pawn can capture another pawn immediately after a pawn makes a move of two squares from its starting position. https://en.wikipedia.org/wiki/En_passant
     int enPassant;
 
-    //The fifty move rule. (The game can be claimed as a draw if no capture has been made and no pawn has moved in the past 50 moves)
+    //The fifty move rule. (The game can be claimed as a draw if no capture has been made and no pawn has moved in the past 50 moves) https://en.wikipedia.org/wiki/Fifty-move_rule
     //This will be measured in "half-turns" because 1 turn is both players moving a piece.
     int fiftyMoveRule;
 
@@ -98,6 +129,9 @@ typedef struct BoardStructure
     //In the game so far, how many half moves have been made.
     //This will be used to evaluating "move repitition".
     int historyPly;
+
+    //Tracking who can castle.
+    int castlePermission;
 
     //A unique key generated for each board position. 
     uint64 positionKey;
@@ -114,9 +148,12 @@ typedef struct BoardStructure
 
     These have 3 elements because it is used once for each color. A tracker for both colors are included.
     */
-   int minorPieces[3];
-   int majorPieces[3];
+    int minorPieces[3];
+    int majorPieces[3];
     
+    //Create an instance of the game history.
+    //So everytime a move is made, we store [at whatever move number we are at] all of the properties of the position. 
+    Undo history[MAX_NUMBER_OF_MOVES]; 
 };
 
 #endif
