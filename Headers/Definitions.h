@@ -68,5 +68,56 @@ enum BoolConst
     FALSE, TRUE
 };
 
+//Defining the board structure.
+typedef struct BoardStructure
+{
+    //This is basically what's on the board.
+    int pieces[BOARD_SQUARE_NUMBER];
+
+    //There are three of them because they are represented them by color, not quantity.
+    //This is because it will be represented, with 1 bit for each square on the 64 squares on the board.
+    //The bit will be set to one if there is a pawn of the corressponding color on that square.
+    uint64 pawns[3];    // 01000000 --> rank 1 (A1 -> H1). In this example, B1 has a pawn on it.
+
+    //Keeping track of which square the kings are on.
+    int kingSquare[2];
+
+    //The current side to move.
+    int side;
+
+    //The "En Passant" square. If there is one active, if not it will be set to NO_SQUARE.
+    int enPassant;
+
+    //The fifty move rule. (The game can be claimed as a draw if no capture has been made and no pawn has moved in the past 50 moves)
+    //This will be measured in "half-turns" because 1 turn is both players moving a piece.
+    int fiftyMoveRule;
+
+    //The ply of current search.
+    int ply;
+
+    //In the game so far, how many half moves have been made.
+    //This will be used to evaluating "move repitition".
+    int historyPly;
+
+    //A unique key generated for each board position. 
+    uint64 positionKey;
+
+    //Store the number of pieces on the board.
+    int numberOfPieces[13];
+
+    //Store by color, the number of pieces that are not pawns.
+    int bigPieces[3];
+
+    /*
+    Store the number of major pieces (Queens, Rooks, *TECHNICALLY KINGS*)
+    Store the number of minor pieces (Bishops, Knights)
+
+    These have 3 elements because it is used once for each color. A tracker for both colors are included.
+    */
+   int minorPieces[3];
+   int majorPieces[3];
+    
+};
+
 #endif
 //End include guard.
