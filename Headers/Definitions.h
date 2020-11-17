@@ -156,5 +156,16 @@ typedef struct BoardStructure
     Undo history[MAX_NUMBER_OF_MOVES]; 
 };
 
+//Macros
+//This finds the index number from the array of squares by inputting a file and rank.
+#define FindSquareViaFileAndRank(file, rank) ((21 + (f)) + ((r) * 10))
+
+//Declaring some global variables here.
+extern int square120ToSquare64[BOARD_SQUARE_NUMBER];
+extern int square64ToSquare120[64];
+
+//Place the initialise function here so the main function can see it.
+extern void InitialiseAll();
+
 #endif
 //End include guard.
